@@ -1,3 +1,31 @@
+P2PMining P2Pool Version:
+
+Info:
+-------------------------
+Summary:
+P2Pool version that logs user name and shares to database to allow distribution of rewards to a pool of smaller miners that may not have the mining power to get a share on the p2pool chain without a lot of variance.
+
+Planned Features:
+* Multiple Currencies
+* Merged Mining
+* Multiple Reward Methods
+* Share Post Processing
+* Miner Statistics Processing
+* Automatically Builds Database
+
+Additional Requirements: 
+-------------------------
+Generic:
+* MySQL Connector/Python >=1.1
+* MySQL >=4.1
+
+Linux:
+* sudo apt-get install mysql-server
+* sudo apt-get install python-mysql.connector
+
+
+P2Pool:
+
 Requirements:
 -------------------------
 Generic:
