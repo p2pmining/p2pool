@@ -17,6 +17,8 @@ import p2pool, p2pool.data as p2pool_data
 class WorkerBridge(worker_interface.WorkerBridge):
     COINBASE_NONCE_LENGTH = 8
     
+    # DEFINE DATABASE CONNECTION (Not Yet Implemented)
+    
     def __init__(self, node, my_pubkey_hash, donation_percentage, merged_urls, worker_fee):
         worker_interface.WorkerBridge.__init__(self)
         self.recent_shares_ts_work = []
@@ -425,7 +427,10 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     self.recent_shares_ts_work.pop(0)
                 self.local_rate_monitor.add_datum(dict(work=bitcoin_data.target_to_average_attempts(target), dead=not on_time, user=user, share_target=share_info['bits'].target))
                 self.local_addr_rate_monitor.add_datum(dict(work=bitcoin_data.target_to_average_attempts(target), pubkey_hash=pubkey_hash))
-            
+                
+                # RECORD SHARES INTO DATABASE (Not Yet Implemented)
+                
             return on_time
         
         return ba, got_response
+    
