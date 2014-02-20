@@ -30,18 +30,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
         ##Setup datbase
         try:
             self.workDB = mysql.connector.connect(user="DBuser",password="DBpasswd",host="localhost",database="p2pmining")
+            self.workDBcursor = self.workDB.cursor()
         except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("Something is wrong with your user name or password")
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("Database does not exists")
-            else:
-                print(err)
-        else:
-            cnx.close()
+            print(err)
         
-        #Setup cursor    
-        self.workDBcursor = self.workDB.cursor()
+        
         
         ###end p2pmining 
         
@@ -321,11 +314,14 @@ class WorkerBridge(worker_interface.WorkerBridge):
         mm_later = [(dict(aux_work, target=aux_work['target'] if aux_work['target'] != 'p2pool' else share_info['bits'].target), index, hashes) for aux_work, index, hashes in mm_later]
         
         if desired_pseudoshare_target is None:
-            target = 2**256-1
+            target = bitcoin_data.difficulty_to_target(1)
             local_hash_rate = self._estimate_local_hash_rate()
             if local_hash_rate is not None:
                 target = min(target,
                     bitcoin_data.average_attempts_to_target(local_hash_rate * 1)) # limit to 1 share response every second by modulating pseudoshare difficulty
+                valid_targets = [1,2,4,8,16,32,64,128,256,512,1024,2048,4096]
+                set_difficulty = min(valid_targets,key=lambda x:abs(x-bitcoin_data.target_to_difficulty(target)))
+                target = bitcoin_data.difficulty_to_target(set_difficulty)
         else:
             target = desired_pseudoshare_target
         target = max(target, share_info['bits'].target)
@@ -450,9 +446,16 @@ class WorkerBridge(worker_interface.WorkerBridge):
                 self.local_rate_monitor.add_datum(dict(work=bitcoin_data.target_to_average_attempts(target), dead=not on_time, user=user, share_target=share_info['bits'].target))
                 self.local_addr_rate_monitor.add_datum(dict(work=bitcoin_data.target_to_average_attempts(target), pubkey_hash=pubkey_hash))
                 
-                # p2pmining - RECORD SHARES INTO DATABASE (Not Yet Implemented)
+                # p2pmining - RECORD SHARES INTO DATABASE 
+                
                 db_diff = bitcoin_data.target_to_difficulty(target)
-                self.workDBcursor.execute("""INSERT INTO live_shares (id,userid,shares) VALUES (NULL, %s , %s ) ON DUPLICATE KEY UPDATE shares=shares + %s""", (user, db_diff * on_time, db_diff * on_time) )
+                # print """INSERT INTO live_shares (id,userid,shares) VALUES (NULL, %s , %s ) ON DUPLICATE KEY UPDATE shares=shares + %s""" % (user, db_diff, on_time)
+                print 'Log share of DIFF:%s and ONTIME:%s and TOTAL:%s' % (db_diff,on_time,db_diff*on_time)
+                try:
+                    self.workDBcursor.execute("""INSERT INTO live_shares (id,userid,shares) VALUES (NULL, %s , %s ) ON DUPLICATE KEY UPDATE shares=shares + %s""", (user, db_diff * on_time, db_diff * on_time) )
+                except mysql.connector.Error as err:
+                    print(err)
+                    
                 # end p2pmining
                 
             return on_time
