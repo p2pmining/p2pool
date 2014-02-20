@@ -13,15 +13,37 @@ import bitcoin.getwork as bitcoin_getwork, bitcoin.data as bitcoin_data
 from bitcoin import helper, script, worker_interface
 from util import forest, jsonrpc, variable, deferral, math, pack
 import p2pool, p2pool.data as p2pool_data
+import mysql.connector
+
 
 class WorkerBridge(worker_interface.WorkerBridge):
     COINBASE_NONCE_LENGTH = 8
     
-    # DEFINE DATABASE CONNECTION (Not Yet Implemented)
+    
     
     def __init__(self, node, my_pubkey_hash, donation_percentage, merged_urls, worker_fee):
         worker_interface.WorkerBridge.__init__(self)
         self.recent_shares_ts_work = []
+        
+        ###p2pmining - DEFINE DATABASE CONNECTION (Hard coded username and password)
+        
+        ##Setup datbase
+        try:
+            self.workDB = mysql.connector.connect(user="DBuser",password="DBpasswd",host="localhost",database="p2pmining")
+        except mysql.connector.Error as err:
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                print("Something is wrong with your user name or password")
+            elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                print("Database does not exists")
+            else:
+                print(err)
+        else:
+            cnx.close()
+        
+        #Setup cursor    
+        self.workDBcursor = self.workDB.cursor()
+        
+        ###end p2pmining 
         
         self.node = node
         self.my_pubkey_hash = my_pubkey_hash
@@ -428,7 +450,10 @@ class WorkerBridge(worker_interface.WorkerBridge):
                 self.local_rate_monitor.add_datum(dict(work=bitcoin_data.target_to_average_attempts(target), dead=not on_time, user=user, share_target=share_info['bits'].target))
                 self.local_addr_rate_monitor.add_datum(dict(work=bitcoin_data.target_to_average_attempts(target), pubkey_hash=pubkey_hash))
                 
-                # RECORD SHARES INTO DATABASE (Not Yet Implemented)
+                # p2pmining - RECORD SHARES INTO DATABASE (Not Yet Implemented)
+                db_diff = bitcoin_data.target_to_difficulty(target)
+                self.workDBcursor.execute("""INSERT INTO live_shares (id,userid,shares) VALUES (NULL, %s , %s ) ON DUPLICATE KEY UPDATE shares=shares + %s""", (user, db_diff * on_time, db_diff * on_time) )
+                # end p2pmining
                 
             return on_time
         
