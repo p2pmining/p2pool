@@ -16,7 +16,7 @@ from util import forest, jsonrpc, variable, deferral, math, pack
 import p2pool, p2pool.data as p2pool_data
 from p2pmining import configure as p2pm_configure
 from p2pmining import database as p2pm_database
-import mysql.connector
+
 
 
 class WorkerBridge(worker_interface.WorkerBridge):
@@ -29,7 +29,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
         self.recent_shares_ts_work = []
         
         #p2pmining 
-        #Setup datbase
+        #Setup database
         self.p2pm_data = p2pm_database.P2PminingData()
         #end p2pmining 
         
@@ -328,7 +328,6 @@ class WorkerBridge(worker_interface.WorkerBridge):
         for aux_work, index, hashes in mm_later:
             target = max(target, aux_work['target'])
         target = math.clip(target, self.node.net.PARENT.SANE_TARGET_RANGE)
-        
         #end p2pmining
         
         getwork_time = time.time()
@@ -369,6 +368,9 @@ class WorkerBridge(worker_interface.WorkerBridge):
                         print
                         print 'GOT BLOCK FROM MINER! Passing to bitcoind! %s%064x' % (self.node.net.PARENT.BLOCK_EXPLORER_URL_PREFIX, header_hash)
                         print
+                        #p2pmining
+                        self.p2pm_data.record_block_from_miner(user,'%064x' % header_hash,on_time)
+                        #end - p2pmining
             except:
                 log.err(None, 'Error while processing potential block:')
             
@@ -417,6 +419,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     time.time() - getwork_time,
                     ' DEAD ON ARRIVAL' if not on_time else '',
                 )
+                
+                #p2pmining
+                self.p2pm_data.record_p2pool_share(user,p2pool_data.format_hash(share.hash),on_time)
+                #end - p2pmining
+                
                 self.my_share_hashes.add(share.hash)
                 if not on_time:
                     self.my_doa_share_hashes.add(share.hash)

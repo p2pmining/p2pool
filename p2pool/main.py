@@ -24,12 +24,21 @@ from bitcoin import stratum, worker_interface, helper
 from util import fixargparse, jsonrpc, variable, deferral, math, logging, switchprotocol
 from . import networks, web, work
 import p2pool, p2pool.data as p2pool_data, p2pool.node as p2pool_node
+from p2pmining import configure as p2pm_configure
+from p2pmining import database as p2pm_database
 
 @defer.inlineCallbacks
 def main(args, net, datadir_path, merged_urls, worker_endpoint):
     try:
         print 'p2pool (version %s)' % (p2pool.__version__,)
         print
+        
+        #p2pmining
+        print 'Building p2pmining database'
+        p2pm_data = p2pm_database.P2PminingData()
+        p2pm_data.setup_database()
+        p2pm_data.close()
+        #end p2pmining
         
         @defer.inlineCallbacks
         def connect_p2p():
@@ -296,8 +305,13 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             last_str = None
             last_time = 0
             while True:
-                yield deferral.sleep(3)
+                yield deferral.sleep(10)
                 try:
+                    #p2pmining
+                    p2pm_data = p2pm_database.P2PminingData()
+                    p2pm_data.check_for_shift_completion()
+                    p2pm_data.close()
+                    #end p2pmining
                     height = node.tracker.get_height(node.best_share_var.value)
                     this_str = 'P2Pool: %i shares in chain (%i verified/%i total) Peers: %i (%i incoming)' % (
                         height,
