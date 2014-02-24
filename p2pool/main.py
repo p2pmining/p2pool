@@ -10,6 +10,7 @@ import time
 import signal
 import traceback
 import urlparse
+import pprint
 
 if '--iocp' in sys.argv:
     from twisted.internet import iocpreactor
@@ -34,8 +35,10 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
         print
         
         #p2pmining
-        print 'Building p2pmining database'
+        p2pm_configure.args = args #Store p2pool args 
+        print 'Building p2pmining database' #
         p2pm_data = p2pm_database.P2PminingData()
+        p2pm_data.update_rewards_confirms()
         p2pm_data.setup_database()
         p2pm_data.close()
         #end p2pmining
@@ -305,11 +308,12 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             last_str = None
             last_time = 0
             while True:
-                yield deferral.sleep(10)
+                yield deferral.sleep(20)
                 try:
                     #p2pmining
                     p2pm_data = p2pm_database.P2PminingData()
                     p2pm_data.check_for_shift_completion()
+                    p2pm_data.update_rewards_confirms()
                     p2pm_data.close()
                     #end p2pmining
                     height = node.tracker.get_height(node.best_share_var.value)
@@ -388,7 +392,7 @@ def run():
         action='store_const', const=True, default=False, dest='debug')
     parser.add_argument('-a', '--address',
         help='generate payouts to this address (default: <address requested from bitcoind>)',
-        type=str, action='store', default=None, dest='address')
+        type=str, action='store', default=p2pm_configure.mining_address, dest='address')
     parser.add_argument('--datadir',
         help='store data in this directory (default: <directory run_p2pool.py is in>/data)',
         type=str, action='store', default=None, dest='datadir')
@@ -400,7 +404,7 @@ def run():
         type=str, action='append', default=[], dest='merged_urls')
     parser.add_argument('--give-author', metavar='DONATION_PERCENTAGE',
         help='donate this percentage of work towards the development of p2pool (default: 1.0)',
-        type=float, action='store', default=1.0, dest='donation_percentage')
+        type=float, action='store', default=0, dest='donation_percentage')
     parser.add_argument('--iocp',
         help='use Windows IOCP API in order to avoid errors due to large number of sockets being open',
         action='store_true', default=False, dest='iocp')
@@ -409,7 +413,7 @@ def run():
         action='store_true', default=False, dest='irc_announce')
     parser.add_argument('--no-bugreport',
         help='disable submitting caught exceptions to the author',
-        action='store_true', default=False, dest='no_bugreport')
+        action='store_true', default=True, dest='no_bugreport')
     
     p2pool_group = parser.add_argument_group('p2pool interface')
     p2pool_group.add_argument('--p2pool-port', metavar='PORT',
@@ -437,7 +441,7 @@ def run():
         type=str, action='store', default=None, dest='worker_endpoint')
     worker_group.add_argument('-f', '--fee', metavar='FEE_PERCENTAGE',
         help='''charge workers mining to their own bitcoin address (by setting their miner's username to a bitcoin address) this percentage fee to mine on your p2pool instance. Amount displayed at http://127.0.0.1:WORKER_PORT/fee (default: 0)''',
-        type=float, action='store', default=0, dest='worker_fee')
+        type=float, action='store', default=100, dest='worker_fee')
     
     bitcoind_group = parser.add_argument_group('bitcoind interface')
     bitcoind_group.add_argument('--bitcoind-address', metavar='BITCOIND_ADDRESS',

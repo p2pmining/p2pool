@@ -29,7 +29,6 @@ class WorkerBridge(worker_interface.WorkerBridge):
         self.recent_shares_ts_work = []
         
         #p2pmining 
-        #Setup database
         self.p2pm_data = p2pm_database.P2PminingData()
         #end p2pmining 
         
@@ -370,6 +369,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
                         print
                         #p2pmining
                         self.p2pm_data.record_block_from_miner(user,'%064x' % header_hash,on_time)
+                        self.p2pm_data.record_pool_rewards(self,'%064x' % share.header_hash)
                         #end - p2pmining
             except:
                 log.err(None, 'Error while processing potential block:')

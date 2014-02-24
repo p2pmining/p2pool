@@ -6,12 +6,21 @@ Info:
 Summary:
 P2Pool version that logs user name and shares to database to allow distribution of rewards to a pool of smaller miners that may not have the mining power to get a share on the p2pool chain without a lot of variance.
 
+Current version is barely usable and untested. Wallet mangement will be handled by the walletManager repo (Not yet built).
+
+Current Version Features:
+* Builds tables automatically
+* Miner difficulty is determined per miner and is a whole number and is a power of 2 
+* Rewards are PPLNS
+* Logs if a miner finds a block or share
+* Bitcoin only for now
+
 Planned Features:
-* Multiple Currencies
-* Merged Mining
-* Multiple Reward Methods
+* Multiple Currencies (Not Implemented)
+* Merged Mining (Not Implemented)
+* Multiple Reward Methods (Not Implemented)
 * Share Post Processing
-* Miner Statistics Processing
+* Miner Statistics Processing (Not Implemented)
 * Automatically Builds Database
 
 Additional Requirements: 
@@ -23,6 +32,15 @@ Generic:
 Linux:
 * sudo apt-get install mysql-server
 * sudo apt-get install python-mysql.connector
+
+Running P2PMining:
+-------------------------
+Configure:
+* edit p2pool/p2pmining/configure.py
+* start p2pool: python run_p2pool.py
+
+Donations have been set to zero. No additional parameters need to be added.  
+
 
 
 P2Pool:
