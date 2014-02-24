@@ -8,11 +8,13 @@ from twisted.python import log
 from p2pool import data as p2pool_data, p2p
 from p2pool.bitcoin import data as bitcoin_data, helper, height_tracker
 from p2pool.util import deferral, variable
+from p2pmining import database as p2pm_database
 
 
 class P2PNode(p2p.Node):
     def __init__(self, node, **kwargs):
         self.node = node
+        self.p2pm_data = p2pm_database.P2PminingData()
         p2p.Node.__init__(self,
             best_share_hash_func=lambda: node.best_share_var.value,
             net=node.net,
@@ -271,7 +273,10 @@ class Node(object):
             print
             print 'GOT BLOCK FROM PEER! Passing to bitcoind! %s bitcoin: %s%064x' % (p2pool_data.format_hash(share.hash), self.net.PARENT.BLOCK_EXPLORER_URL_PREFIX, share.header_hash)
             print
-        
+            #p2pmining
+            self.p2pm_data.record_pool_rewards(self,share.header_hash)
+            #end p2pmining
+            
         def forget_old_txs():
             new_known_txs = {}
             if self.p2p_node is not None:
