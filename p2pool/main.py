@@ -314,6 +314,7 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
                     p2pm_data = p2pm_database.P2PminingData()
                     p2pm_data.check_for_shift_completion()
                     p2pm_data.update_rewards_confirms()
+                    p2pm_data.distribute_rewards()
                     p2pm_data.close()
                     #end p2pmining
                     height = node.tracker.get_height(node.best_share_var.value)
