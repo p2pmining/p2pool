@@ -313,6 +313,7 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
                     #p2pmining
                     p2pm_data = p2pm_database.P2PminingData()
                     p2pm_data.check_for_shift_completion()
+                    p2pm_data.get_rewards_trans_values()
                     p2pm_data.update_rewards_confirms()
                     p2pm_data.distribute_rewards()
                     p2pm_data.close()
