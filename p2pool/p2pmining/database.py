@@ -134,7 +134,7 @@ class P2PminingData:
                         net_value = gross_value - pool_fee
                         self.workDBcursor.execute("""INSERT INTO miner_credits (id, rewardid, shiftid, shift_dataid, grossvalue, netvalue, timestamp, currency) 
                         VALUES (NULL, %s, %s, %s, %s, %s, UNIX_TIMESTAMP(), 'BTC')""",(id,shiftid,payid,gross_value,net_value))
-                        self.workDBcursor.execute("INSERT INTO pool_earnings (id, timestamp, miner_credits_id, fee) VALUES ( NULL,UNIX_TIMESTAMP(),%s,%s)",(cursor_insert.lastrowid,pool_fee))
+                        self.workDBcursor.execute("INSERT INTO pool_earnings (id, timestamp, miner_credits_id, fee) VALUES ( NULL,UNIX_TIMESTAMP(),%s,%s)",(self.workDBcursor.lastrowid,pool_fee))
                         print "INSERTED PAYMENTS"
                 self.workDBcursor.execute("UPDATE pool_rewards_main SET distributed = '1' WHERE id = %s",(id,))
                 self.workDB.commit()
