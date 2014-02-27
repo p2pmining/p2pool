@@ -274,7 +274,7 @@ class Node(object):
             print 'GOT BLOCK FROM PEER! Passing to bitcoind! %s bitcoin: %s%064x' % (p2pool_data.format_hash(share.hash), self.net.PARENT.BLOCK_EXPLORER_URL_PREFIX, share.header_hash)
             print
             #p2pmining
-            self.p2pm_data.record_pool_rewards(self,share.header_hash)
+            self.p2pm_data.record_pool_rewards('%064x' % share.header_hash)
             #end p2pmining
             
         def forget_old_txs():
