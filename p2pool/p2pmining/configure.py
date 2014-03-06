@@ -9,3 +9,25 @@ mining_address='1Mdq4dqoxi8N8An3M2gfZCt9pNYGZ927uD' #payout address
 primary_coin='Bitcoin' #primary coin name
 primary_coin_abbrv='BTC' #primary coin abbreviation
 pool_fee=0.1 #fee paid to pool in % of rewards (pool will need to pay transaction fees)
+merged_mining=[
+        {
+            'name':'Namecoin',
+            'abbrieviation':'NMC',
+            'url':'http://user:8asd7ybbdvb9sd7YGya7@127.0.0.1:9991'
+        },
+        {
+            'name':'iXcoin',
+            'abbrieviation':'IXC',
+            'url':'http://user:78asd87tmnb23nb4ods8zx876aJHGVC@127.0.0.1:9994'
+        },
+        {
+            'name':'i0coin',
+            'abbrieviation':'I0C',
+            'url':'http://user:88f7iwibcxUJYFuy7sga6fguT4Hdg427@127.0.0.1:9992'
+        },
+        {
+            'name':'Devcoin',
+            'abbrieviation':'DVC',
+            'url':'http://user:78asd87tmnb23nb4ods8zx876aJHGVC@127.0.0.1:9993'
+        }
+    ]

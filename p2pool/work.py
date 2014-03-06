@@ -382,8 +382,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
             on_time = self.new_work_event.times == lp_count
             
             for aux_work, index, hashes in mm_later:
+                #print 'aux work index: %s difficulty: %s' % (index,bitcoin_data.target_to_difficulty(aux_work['target']))
+                #print 'pow_hash: %064x' % (pow_hash,)
                 try:
                     if pow_hash <= aux_work['target'] or p2pool.DEBUG:
+                        self.p2pm_data.record_merged_block('%064x' % pow_hash,index)
                         df = deferral.retry('Error submitting merged block: (will retry)', 10, 10)(aux_work['merged_proxy'].rpc_getauxblock)(
                             pack.IntType(256, 'big').pack(aux_work['hash']).encode('hex'),
                             bitcoin_data.aux_pow_type.pack(dict(

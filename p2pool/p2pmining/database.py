@@ -77,12 +77,11 @@ class P2PminingData:
     def setup_database(self):
         self.run_sql_from_file('p2pmining_database.sql')
     
-    def record_pool_rewards(self,blockhash):
+    def record_pool_rewards(self,blockhash,cointype='BTC'):
         try:
-            self.workDBcursor.execute("INSERT INTO pool_rewards_main (id,blockhash,timestamp) VALUES (NULL, %s , UNIX_TIMESTAMP() )", (blockhash,))
+            self.workDBcursor.execute("INSERT INTO pool_rewards_main (id,blockhash,timestamp,cointype) VALUES (NULL, %s , UNIX_TIMESTAMP() , %s)", (blockhash,cointype))
             self.workDB.commit()
         except mysql.connector.Error as err:
-            self.workDB.rollback()
             print(err)
         self.get_rewards_trans_values()
         self.update_rewards_confirms()
@@ -100,9 +99,10 @@ class P2PminingData:
             self.workDB.rollback()
             print(err)
             
+    #Primary coin transaction match to block
     def update_rewards_confirms(self):
         try:
-            self.workDBcursor.execute("SELECT id,txid FROM pool_rewards_main WHERE confirmations < '120' AND txid != 'NONE'")
+            self.workDBcursor.execute("SELECT id,txid FROM pool_rewards_main WHERE confirmations < '120' AND txid != 'NONE' AND cointype = %s",(configure.primary_coin_abbrv,))
             result1 = self.workDBcursor.fetchall()
             for (id,txid) in result1:
                 tx = self.bitcoin.get_transaction(txid)
@@ -116,9 +116,9 @@ class P2PminingData:
     def distribute_rewards(self):
         try:
             
-            self.workDBcursor.execute("SELECT id,value FROM pool_rewards_main WHERE distributed = '0' AND txid != 'NONE'")
+            self.workDBcursor.execute("SELECT id,value,cointype FROM pool_rewards_main WHERE distributed = '0' AND txid != 'NONE'")
             result1 = self.workDBcursor.fetchall()
-            for (id,value) in result1:
+            for (id,value,cointype) in result1:
                 self.workDBcursor.execute("""SELECT SUM(shift_data.shares) as total_shares FROM shift_data, 
                 (SELECT * FROM shifts ORDER BY timestamp DESC LIMIT %s) as payshift WHERE payshift.id = shift_data.shiftid""", (configure.shifts_pplns,))
                 result2 = self.workDBcursor.fetchone()
@@ -133,7 +133,7 @@ class P2PminingData:
                         pool_fee = gross_value * Decimal(configure.pool_fee / 100)
                         net_value = gross_value - pool_fee
                         self.workDBcursor.execute("""INSERT INTO miner_credits (id, rewardid, shiftid, shift_dataid, grossvalue, netvalue, timestamp, currency) 
-                        VALUES (NULL, %s, %s, %s, %s, %s, UNIX_TIMESTAMP(), 'BTC')""",(id,shiftid,payid,gross_value,net_value))
+                        VALUES (NULL, %s, %s, %s, %s, %s, UNIX_TIMESTAMP(), %s)""",(id,shiftid,payid,gross_value,net_value,cointype))
                         self.workDBcursor.execute("INSERT INTO pool_earnings (id, timestamp, miner_credits_id, fee) VALUES ( NULL,UNIX_TIMESTAMP(),%s,%s)",(self.workDBcursor.lastrowid,pool_fee))
                         print "INSERTED PAYMENTS"
                 self.workDBcursor.execute("UPDATE pool_rewards_main SET distributed = '1' WHERE id = %s",(id,))
@@ -141,5 +141,9 @@ class P2PminingData:
         except mysql.connector.Error as err:
             self.workDB.rollback()
             print(err)    
-       
+    
+    def record_merged_block(self,blockhash,index):
+        coin=configure.merged_mining[index]
+        self.record_pool_rewards(blockhash,coin['abbrieviation'])
+            
 

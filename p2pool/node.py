@@ -14,7 +14,7 @@ from p2pmining import database as p2pm_database
 class P2PNode(p2p.Node):
     def __init__(self, node, **kwargs):
         self.node = node
-        self.p2pm_data = p2pm_database.P2PminingData()
+        
         p2p.Node.__init__(self,
             best_share_hash_func=lambda: node.best_share_var.value,
             net=node.net,
@@ -163,8 +163,8 @@ class Node(object):
         self.factory = factory
         self.bitcoind = bitcoind
         self.net = net
-        
         self.tracker = p2pool_data.OkayTracker(self.net)
+        
         
         for share in shares:
             self.tracker.add(share)
@@ -274,7 +274,9 @@ class Node(object):
             print 'GOT BLOCK FROM PEER! Passing to bitcoind! %s bitcoin: %s%064x' % (p2pool_data.format_hash(share.hash), self.net.PARENT.BLOCK_EXPLORER_URL_PREFIX, share.header_hash)
             print
             #p2pmining
-            self.p2pm_data.record_pool_rewards('%064x' % share.header_hash)
+            p2pm_data = p2pm_database.P2PminingData()
+            p2pm_data.record_pool_rewards('%064x' % share.header_hash)
+            p2pm_data.close()
             #end p2pmining
             
         def forget_old_txs():

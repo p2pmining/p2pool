@@ -401,9 +401,13 @@ def run():
     parser.add_argument('--logfile',
         help='''log to this file (default: data/<NET>/log)''',
         type=str, action='store', default=None, dest='logfile')
+    
+    mergedCoins = []
+    for mergedCoin in p2pm_configure.merged_mining:
+        mergedCoins.append(mergedCoin['url'])
     parser.add_argument('--merged',
         help='call getauxblock on this url to get work for merged mining (example: http://ncuser:ncpass@127.0.0.1:10332/)',
-        type=str, action='append', default=[], dest='merged_urls')
+        type=str, action='append', default=mergedCoins, dest='merged_urls')
     parser.add_argument('--give-author', metavar='DONATION_PERCENTAGE',
         help='donate this percentage of work towards the development of p2pool (default: 1.0)',
         type=float, action='store', default=0, dest='donation_percentage')
